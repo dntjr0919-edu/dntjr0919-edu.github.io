@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>화학 랜덤 체험 문제</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#f4f7f6;--srf:#ffffff;--srf2:#ecf2f0;--bdr:rgba(0,0,0,.09);
+  --txt:#172422;--mut:#4a6860;--fnt:#9ab9b2;
+  --pri:#0c7a5e;--pri-h:#09604a;--pri-l:#daeee9;--pri-d:#084d3a;
+  --acc:#e09b18;--acc-l:#fff4d6;
+  --ok:#256e28;--ok-l:#e8f5e9;--err:#b71c1c;--err-l:#ffebee;
+  --ff:'Noto Sans KR',sans-serif;
+  --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.25rem;--s6:1.5rem;--s8:2rem;--s10:2.5rem;--s12:3rem;
+  --r-sm:.375rem;--r-md:.625rem;--r-lg:1rem;--r-xl:1.375rem;--r-f:9999px;
+  --sh:0 2px 14px rgba(0,0,0,.07);--sh2:0 6px 28px rgba(0,0,0,.11);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --tx-xs:clamp(.72rem,.68rem + .2vw,.82rem);
+  --tx-s:clamp(.875rem,.83rem + .22vw,.97rem);
+  --tx-b:clamp(1rem,.96rem + .18vw,1.08rem);
+  --tx-l:clamp(1.1rem,1.02rem + .4vw,1.3rem);
+  --tx-xl:clamp(1.35rem,1.1rem + .8vw,1.7rem);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:none;text-size-adjust:none}
+body{font-family:var(--ff);font-size:var(--tx-b);color:var(--txt);background:var(--bg);min-height:100dvh}
+
+/* ═══ SCREENS ═══ */
+.screen{display:none;min-height:100dvh;flex-direction:column}
+.screen.active{display:flex}
+
+/* ── Teacher / QR Screen ── */
+#screen-teacher{align-items:center;justify-content:center;padding:var(--s6) var(--s4);gap:var(--s6)}
+.teacher-hero{text-align:center;max-width:480px}
+.teacher-hero h1{font-size:var(--tx-xl);font-weight:900;margin-bottom:var(--s3);line-height:1.25}
+.teacher-hero h1 span{color:var(--pri)}
+.teacher-hero p{font-size:var(--tx-s);color:var(--mut);line-height:1.7;margin-bottom:var(--s5)}
+.teacher-card{background:var(--srf);border-radius:var(--r-xl);padding:var(--s6);box-shadow:var(--sh2);border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;gap:var(--s4);width:100%;max-width:340px}
+.qr-wrap{background:#fff;border-radius:var(--r-md);padding:var(--s3);border:2px solid var(--bdr)}
+.qr-url-txt{font-size:var(--tx-xs);color:var(--mut);word-break:break-all;text-align:center;max-width:280px;line-height:1.5}
+.qr-label{display:flex;align-items:center;gap:var(--s2);background:var(--pri-l);color:var(--pri);border-radius:var(--r-f);padding:var(--s1) var(--s4);font-size:var(--tx-xs);font-weight:700}
+.teacher-actions{display:flex;gap:var(--s3);flex-wrap:wrap;justify-content:center}
+.btn{padding:var(--s3) var(--s5);border:none;border-radius:var(--r-lg);font-family:var(--ff);font-size:var(--tx-s);font-weight:700;cursor:pointer;transition:background .18s var(--ease),transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri-h)}
+.btn-sec{background:var(--srf);color:var(--pri);border:1.5px solid var(--pri)}.btn-sec:hover{background:var(--pri-l)}
+.info-row{display:flex;gap:var(--s5);font-size:var(--tx-xs);color:var(--mut);margin-top:var(--s2)}
+.info-item{display:flex;align-items:center;gap:var(--s1);font-weight:500}
+
+/* ── Quiz Screen ── */
+#screen-quiz{padding:var(--s4);max-width:520px;margin:0 auto;width:100%}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:var(--s4)}
+.quiz-logo{display:flex;align-items:center;gap:var(--s2);font-weight:900;font-size:var(--tx-l);color:var(--pri)}
+.prog-wrap{flex:1;margin:0 var(--s4)}
+.prog-bar{height:6px;background:var(--srf2);border-radius:var(--r-f);overflow:hidden}
+.prog-fill{height:100%;background:var(--pri);border-radius:var(--r-f);transition:width .4s var(--ease)}
+.prog-lbl{font-size:var(--tx-xs);color:var(--mut);text-align:right;margin-top:3px}
+
+/* ── Question Card ── */
+.q-card{background:var(--srf);border-radius:var(--r-xl);padding:var(--s5) var(--s6);box-shadow:var(--sh);border:1px solid var(--bdr);animation:fadeUp .32s var(--ease) both}
+.q-tag{display:inline-flex;align-items:center;gap:var(--s1);background:var(--pri-l);color:var(--pri);padding:var(--s1) var(--s3);border-radius:var(--r-f);font-size:var(--tx-xs);font-weight:700;letter-spacing:.04em;margin-bottom:var(--s4)}
+.q-num{font-size:var(--tx-xs);color:var(--mut);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:var(--s2)}
+.q-text{font-size:var(--tx-l);font-weight:700;line-height:1.5;margin-bottom:var(--s5);color:var(--txt)}
+.q-text sub,sup{font-size:.72em}
+.opts{display:flex;flex-direction:column;gap:var(--s3)}
+.opt{display:flex;align-items:center;gap:var(--s3);padding:var(--s4);background:var(--bg);border:1.5px solid var(--bdr);border-radius:var(--r-lg);cursor:pointer;transition:background .16s,border-color .16s,box-shadow .16s;-webkit-tap-highlight-color:transparent;text-align:left;width:100%}
+.opt:hover{background:var(--pri-l);border-color:var(--pri);box-shadow:var(--sh)}
+.opt:active{transform:scale(.984)}
+.opt-n{width:30px;height:30px;border-radius:50%;background:var(--srf);border:1.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:var(--tx-xs);font-weight:900;flex-shrink:0;transition:all .16s}
+.opt-t{font-size:var(--tx-s);font-weight:500;line-height:1.4;color:var(--txt)}
+.opt.selected{background:var(--pri-l);border-color:var(--pri)}
+.opt.selected .opt-n{background:var(--pri);border-color:var(--pri);color:#fff}
+.opt.correct{background:var(--ok-l);border-color:var(--ok);cursor:default}
+.opt.correct .opt-n{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--err-l);border-color:var(--err);cursor:default}
+.opt.wrong .opt-n{background:var(--err);border-color:var(--err);color:#fff}
+.opt.disabled{cursor:default;opacity:.5}
+.opt.reveal{background:var(--ok-l);border-color:var(--ok)}
+.opt.reveal .opt-n{background:var(--ok);border-color:var(--ok);color:#fff}
+.fb{margin-top:var(--s4);padding:var(--s4);border-radius:var(--r-lg);font-size:var(--tx-s);line-height:1.65;display:none}
+.fb.show{display:block;animation:fadeUp .28s var(--ease) both}
+.fb.ok{background:var(--ok-l);border:1px solid var(--ok);color:var(--ok)}
+.fb.ng{background:var(--err-l);border:1px solid var(--err);color:var(--err)}
+.fb strong{display:block;font-size:var(--tx-b);margin-bottom:var(--s1)}
+.btn-next{display:none;margin-top:var(--s4);width:100%;padding:var(--s4);background:var(--pri);color:#fff;border:none;border-radius:var(--r-lg);font-family:var(--ff);font-size:var(--tx-b);font-weight:700;cursor:pointer;transition:background .18s;animation:fadeUp .28s var(--ease) both}
+.btn-next.show{display:block}
+.btn-next:hover{background:var(--pri-h)}
+.btn-next:active{transform:scale(.98)}
+
+/* ── Result Screen ── */
+#screen-result{align-items:center;justify-content:center;padding:var(--s8) var(--s5);text-align:center;gap:var(--s5);max-width:480px;margin:0 auto;width:100%}
+.res-circle{position:relative;width:130px;height:130px}
+.res-circle svg{transform:rotate(-90deg)}
+.res-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;line-height:1.1}
+.res-big{font-size:2.2rem;color:var(--pri)}
+.res-small{font-size:var(--tx-xs);color:var(--mut)}
+.res-grade{font-size:var(--tx-xl);font-weight:900}
+.res-msg{font-size:var(--tx-s);color:var(--mut);max-width:34ch;line-height:1.7}
+.res-breakdown{width:100%;background:var(--srf);border-radius:var(--r-xl);padding:var(--s5);box-shadow:var(--sh);border:1px solid var(--bdr);text-align:left}
+.bd-title{font-size:var(--tx-xs);font-weight:700;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:var(--s3)}
+.bd-item{display:flex;align-items:flex-start;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px solid var(--bdr)}
+.bd-item:last-child{border-bottom:none}
+.bd-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.bd-dot.ok{background:var(--ok)}.bd-dot.ng{background:var(--err)}
+.bd-q{font-size:var(--tx-xs);flex:1;line-height:1.4;color:var(--txt)}
+.bd-a{font-size:var(--tx-xs);color:var(--mut);white-space:nowrap;padding-top:2px}
+.res-btns{display:flex;gap:var(--s3);flex-wrap:wrap;justify-content:center;margin-top:var(--s2)}
+
+/* ── confetti ── */
+.cf{position:fixed;top:-10px;border-radius:2px;animation:fall linear forwards;pointer-events:none;z-index:999}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media print{#screen-teacher .teacher-hero,#screen-teacher .teacher-actions,#screen-teacher .info-row{display:none!important}.teacher-card{box-shadow:none;border:2px solid #aaa}.qr-wrap{border-color:#666}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<!-- ════ TEACHER SCREEN ════ -->
+<div id="screen-teacher" class="screen active">
+  <div class="teacher-hero">
+    <h1>화학 <span>랜덤 체험</span><br>문제 카드</h1>
+    <p>QR 코드를 인쇄하여 교실에 부착하세요.<br>학생이 스캔하면 통합과학 수준 화학 문제 <strong>3문제</strong>가 랜덤으로 출제됩니다.</p>
+    <div class="info-row" style="justify-content:center">
+      <span class="info-item">📚 문제 풀 <strong id="pool-count">?</strong>문항</span>
+      <span class="info-item">🎲 매번 랜덤 3문제</span>
+      <span class="info-item">✅ 즉시 정답 확인</span>
+    </div>
+  </div>
+
+  <div class="teacher-card">
+    <div class="qr-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17 14h.01M14 14h.01M20 14h.01M14 17h.01M17 17h.01M20 17h.01M14 20h3v3"/></svg>
+      학생용 QR 코드
+    </div>
+    <div class="qr-wrap"><div id="qr-box"></div></div>
+    <div class="qr-url-txt" id="qr-url-txt"></div>
+  </div>
+
+  <div class="teacher-actions">
+    <button class="btn btn-pri" onclick="window.print()">🖨️ QR 카드 인쇄</button>
+    <button class="btn btn-sec" onclick="previewQuiz()">👁 학생 화면 미리보기</button>
+  </div>
+</div>
+
+<!-- ════ QUIZ SCREEN ════ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-logo">
+      <svg aria-label="화학" width="26" height="26" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+        <circle cx="14" cy="8" r="2.5" fill="currentColor"/>
+        <circle cx="8" cy="19" r="2.5" fill="currentColor"/>
+        <circle cx="20" cy="19" r="2.5" fill="currentColor"/>
+        <line x1="14" y1="8" x2="8" y2="19" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="14" y1="8" x2="20" y2="19" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="8" y1="19" x2="20" y2="19" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      화학
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      <div class="prog-lbl" id="prog-lbl"></div>
+    </div>
+  </div>
+  <div id="q-area"></div>
+</div>
+
+<!-- ════ RESULT SCREEN ════ -->
+<div id="screen-result" class="screen">
+  <div class="res-circle" id="res-circle"></div>
+  <div class="res-grade" id="res-grade"></div>
+  <p class="res-msg" id="res-msg"></p>
+  <div class="res-breakdown" id="res-breakdown"></div>
+  <div class="res-btns">
+    <button class="btn btn-pri" onclick="retryQuiz()">🔄 다시 풀기 (새 문제)</button>
+    <button class="btn btn-sec" onclick="goTeacher()">← 교사 화면</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   문제 풀 — 통합과학 수준 화학 문제 20문항
+   ════════════════════════════════════════════ */
+const ALL_QS = [
+  // ── 물질의 구성
+  { tag:"물질의 구성", q:"다음 중 순물질에 해당하는 것은?", opts:["공기","바닷물","증류수","우유","소금물"], ans:2, exp:"증류수(H₂O)는 한 종류의 화합물로만 이루어진 순물질입니다." },
+  { tag:"물질의 구성", q:"원소와 화합물에 대한 설명으로 옳은 것은?", opts:["물은 원소이다","산소(O₂)는 화합물이다","이산화탄소는 원소이다","소금(NaCl)은 화합물이다","구리는 화합물이다"], ans:3, exp:"NaCl은 Na와 Cl, 두 종류 이상의 원소로 이루어진 화합물입니다." },
+  { tag:"물질의 구성", q:"혼합물을 순물질로 분리하는 방법 중 '끓는점 차이'를 이용하는 것은?", opts:["거름","증발","증류","크로마토그래피","투석"], ans:2, exp:"증류는 혼합물 속 성분들의 끓는점 차이를 이용하여 분리하는 방법입니다." },
+
+  // ── 원자와 주기율
+  { tag:"원자와 주기율", q:"원자핵을 구성하는 입자로 옳게 짝지어진 것은?", opts:["전자와 중성자","양성자와 전자","양성자와 중성자","전자와 광자","양성자와 광자"], ans:2, exp:"원자핵은 양성자(+전하)와 중성자(전하 없음)로 구성됩니다." },
+  { tag:"원자와 주기율", q:"같은 족(group) 원소들이 공통으로 갖는 특성은?", opts:["같은 전자 수","같은 원자량","비슷한 화학적 성질","같은 양성자 수","같은 중성자 수"], ans:2, exp:"같은 족 원소는 최외각 전자 수가 같아 화학적 성질이 유사합니다." },
+  { tag:"원자와 주기율", q:"Na 원자(원자번호 11)의 최외각 전자 수는?", opts:["1","2","7","8","11"], ans:0, exp:"Na(11): 전자 배치 2-8-1 → 최외각 전자 1개" },
+  { tag:"원자와 주기율", q:"다음 중 비금속 원소만으로 이루어진 것은?", opts:["Na, Cl","Fe, Cu","C, O, N","Na, K","Al, Mg"], ans:2, exp:"C(탄소), O(산소), N(질소)는 모두 비금속 원소입니다." },
+
+  // ── 화학 결합
+  { tag:"화학 결합", q:"이온 결합 화합물의 특성으로 옳은 것은?", opts:["녹는점이 매우 낮다","고체 상태에서 전기가 통한다","수용액에서 전기가 통한다","모두 기체로 존재한다","물에 잘 녹지 않는다"], ans:2, exp:"이온 결합 화합물은 수용액 상태에서 이온이 이동할 수 있어 전기가 통합니다." },
+  { tag:"화학 결합", q:"물(H₂O)이 극성 분자인 이유로 가장 적합한 것은?", opts:["분자량이 크기 때문","굽은형 구조로 쌍극자 모멘트가 상쇄되지 않기 때문","수소 결합을 하기 때문","이온 결합이기 때문","공유 전자쌍이 없기 때문"], ans:1, exp:"물은 굽은형(104.5°) 구조로 O-H 결합의 쌍극자 모멘트가 상쇄되지 않아 극성 분자입니다." },
+  { tag:"화학 결합", q:"NaCl이 형성될 때 Na와 Cl 사이에서 일어나는 것은?", opts:["Na가 전자를 얻는다","Cl이 전자를 잃는다","Na가 전자를 잃고 Cl이 전자를 얻는다","두 원자가 전자쌍을 공유한다","양성자가 이동한다"], ans:2, exp:"Na → Na⁺ + e⁻, Cl + e⁻ → Cl⁻, 즉 Na가 전자를 잃고 Cl이 전자를 얻어 이온 결합을 형성합니다." },
+
+  // ── 화학 반응
+  { tag:"화학 반응", q:"다음 중 산화-환원 반응이 아닌 것은?", opts:["철이 녹스는 반응","나무가 타는 반응","중화 반응","금속이 산소와 반응","사진 현상"], ans:2, exp:"중화 반응(산+염기→염+물)은 산화수 변화가 없으므로 산화-환원 반응이 아닙니다." },
+  { tag:"화학 반응", q:"다음 화학 반응식을 완성할 때 계수 a, b, c 중 옳게 맞춘 것은?<br>aCH₄ + bO₂ → cCO₂ + 2H₂O", opts:["a=1, b=1, c=1","a=1, b=2, c=1","a=2, b=2, c=1","a=1, b=3, c=2","a=2, b=4, c=2"], ans:1, exp:"CH₄ + 2O₂ → CO₂ + 2H₂O (a=1, b=2, c=1)" },
+  { tag:"화학 반응", q:"산과 염기가 반응했을 때 생성되는 것은?", opts:["산화물과 수소","염과 물","이산화탄소와 물","금속과 산소","기체와 수소"], ans:1, exp:"산 + 염기 → 염 + 물 (중화 반응)" },
+
+  // ── 물과 용액
+  { tag:"물과 용액", q:"pH 7보다 작은 용액의 성질로 옳은 것은?", opts:["염기성이다","리트머스 종이를 파랗게 만든다","[OH⁻] > [H⁺]이다","산성이다","중성이다"], ans:3, exp:"pH < 7이면 [H⁺] > [OH⁻]이므로 산성 용액입니다." },
+  { tag:"물과 용액", q:"소금(NaCl)을 물에 녹일 때 일어나는 현상으로 옳은 것은?", opts:["NaCl 분자가 그대로 녹아든다","Na⁺와 Cl⁻로 분리되어 녹는다","Na와 Cl₂로 분해된다","NaOH와 HCl이 생성된다","물이 이온화된다"], ans:1, exp:"이온성 물질 NaCl은 물에서 Na⁺와 Cl⁻로 이온화됩니다." },
+  { tag:"물과 용액", q:"수용액의 액성을 확인하는 지시약으로 산성에서 빨간색을 나타내는 것은?", opts:["페놀프탈레인","BTB 용액","리트머스 종이","메틸 오렌지","모두 해당 없음"], ans:2, exp:"리트머스 종이는 산성에서 붉은색, 염기성에서 파란색을 나타냅니다." },
+
+  // ── 에너지와 반응
+  { tag:"반응과 에너지", q:"발열 반응에 대한 설명으로 옳은 것은?", opts:["반응 후 주변 온도가 낮아진다","반응 물질의 에너지 합이 생성 물질보다 작다","연소 반응은 발열 반응이다","흡열 반응과 같은 말이다","반응이 자발적으로 일어나지 않는다"], ans:2, exp:"연소 반응은 대표적인 발열 반응으로 열에너지를 방출합니다." },
+  { tag:"반응과 에너지", q:"다음 중 흡열 반응의 예로 옳은 것은?", opts:["연소","산의 중화","냉각 팩 속 질산암모늄 용해","철이 녹스는 반응","손난로 발열 반응"], ans:2, exp:"질산암모늄(NH₄NO₃)이 물에 용해될 때 주변에서 열을 흡수하므로 흡열 반응입니다. (냉각 팩 원리)" },
+
+  // ── 기체
+  { tag:"기체의 성질", q:"기체의 압력을 일정하게 유지할 때 온도를 높이면 부피는?", opts:["줄어든다","변화 없다","늘어난다","절반이 된다","두 배가 된다"], ans:2, exp:"샤를의 법칙: 압력 일정 시 기체의 부피는 절대 온도에 비례하여 커집니다." },
+  { tag:"기체의 성질", q:"기체의 온도를 일정하게 유지할 때 압력을 2배로 높이면 부피는?", opts:["2배가 된다","변화 없다","4배가 된다","절반이 된다","1/4이 된다"], ans:3, exp:"보일의 법칙: 온도 일정 시 기체의 부피는 압력에 반비례합니다. 압력 2배 → 부피 1/2" },
+];
+
+/* ════ State ════ */
+let isTeacher = false;
+let quizQs = [], cur = 0, score = 0, answered = [];
+
+/* ════ Init ════ */
+function init() {
+  document.getElementById('pool-count').textContent = ALL_QS.length;
+  const hash = location.hash.replace('#','');
+  if (hash === 'quiz') {
+    isTeacher = false;
+    startQuiz();
+  } else {
+    isTeacher = true;
+    showScreen('teacher');
+    buildQR();
+  }
+}
+
+/* ════ QR ════ */
+function buildQR() {
+  const quizUrl = location.href.split('#')[0] + '#quiz';
+  document.getElementById('qr-url-txt').textContent = quizUrl;
+  document.getElementById('qr-box').innerHTML = '';
+  try {
+    new QRCode(document.getElementById('qr-box'), {
+      text: quizUrl, width: 180, height: 180,
+      colorDark: '#0c7a5e', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {}
+}
+
+function previewQuiz() { startQuiz(); }
+function goTeacher() { showScreen('teacher'); }
+
+/* ════ Quiz ════ */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  quizQs = shuffle(ALL_QS).slice(0, 3);
+  cur = 0; score = 0; answered = new Array(3).fill(null);
+  showScreen('quiz');
+  renderQ();
+}
+
+function retryQuiz() { startQuiz(); }
+
+function renderQ() {
+  const q = quizQs[cur];
+  updateProg();
+  document.getElementById('q-area').innerHTML = `
+  <div class="q-card">
+    <div class="q-tag">⚗️ ${q.tag}</div>
+    <div class="q-num">문제 ${cur+1} / ${quizQs.length}</div>
+    <p class="q-text">${q.q}</p>
+    <div class="opts" id="opts">
+      ${q.opts.map((o,i) => `
+      <button class="opt" data-i="${i}" onclick="select(${i})" aria-label="선택지 ${i+1}">
+        <span class="opt-n">${i+1}</span>
+        <span class="opt-t">${o}</span>
+      </button>`).join('')}
+    </div>
+    <div class="fb" id="fb"></div>
+    <button class="btn-next" id="btn-next" onclick="nextQ()">
+      ${cur+1 < quizQs.length ? '다음 문제 →' : '결과 보기 →'}
+    </button>
+  </div>`;
+}
+
+function select(i) {
+  if (answered[cur] !== null) return;
+  answered[cur] = i;
+  const q = quizQs[cur];
+  const correct = (i === q.ans);
+  if (correct) score++;
+  document.querySelectorAll('.opt').forEach((el, idx) => {
+    el.setAttribute('onclick','');
+    if (idx === i) el.classList.add(correct ? 'correct' : 'wrong');
+    else if (idx === q.ans) el.classList.add('reveal');
+    else el.classList.add('disabled');
+  });
+  const fb = document.getElementById('fb');
+  fb.className = 'fb show ' + (correct ? 'ok' : 'ng');
+  fb.innerHTML = correct
+    ? `<strong>✓ 정답!</strong>${q.exp}`
+    : `<strong>✗ 오답</strong>${q.exp}`;
+  const btn = document.getElementById('btn-next');
+  btn.className = 'btn-next show';
+}
+
+function nextQ() {
+  cur++;
+  if (cur >= quizQs.length) showResult();
+  else renderQ();
+}
+
+function updateProg() {
+  const pct = (cur / quizQs.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-lbl').textContent = `${cur}/${quizQs.length}`;
+}
+
+/* ════ Result ════ */
+const GRADES = [
+  { min:3, label:'🏆 만점!', msg:'3문제 모두 맞혔어요. 화학 개념이 탄탄해요!' },
+  { min:2, label:'🌟 잘 했어요!', msg:'2문제 정답! 틀린 문제 해설을 다시 확인해 봐요.' },
+  { min:1, label:'📖 다시 도전!', msg:'1문제 정답. 교과서를 참고해서 다시 풀어보세요.' },
+  { min:0, label:'💪 화이팅!', msg:'괜찮아요! 설명을 읽고 다시 도전해 보세요.' },
+];
+
+function showResult() {
+  updateProg();
+  document.getElementById('prog-fill').style.width = '100%';
+  document.getElementById('prog-lbl').textContent = `${quizQs.length}/${quizQs.length}`;
+
+  const total = quizQs.length;
+  const pct = Math.round(score / total * 100);
+  const grade = GRADES.find(g => score >= g.min);
+  const r = 38, circ = 2 * Math.PI * r, off = circ - (pct/100)*circ;
+  const strokeColor = pct===100?'#256e28':pct>=66?'#0c7a5e':'#e09b18';
+
+  document.getElementById('res-circle').innerHTML = `
+    <svg width="130" height="130" viewBox="0 0 90 90">
+      <circle cx="45" cy="45" r="${r}" fill="none" stroke="#daeee9" stroke-width="8"/>
+      <circle cx="45" cy="45" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="8"
+        stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" stroke-linecap="round"/>
+    </svg>
+    <div class="res-txt">
+      <span class="res-big">${score}</span>
+      <span class="res-small">/ ${total}</span>
+    </div>`;
+
+  document.getElementById('res-grade').textContent = grade.label;
+  document.getElementById('res-msg').textContent = grade.msg;
+
+  document.getElementById('res-breakdown').innerHTML = `
+    <div class="bd-title">문제별 결과</div>
+    ${quizQs.map((q,i) => {
+      const ok = answered[i] === q.ans;
+      const shortQ = q.q.replace(/<[^>]+>/g,'').slice(0,38) + (q.q.length>38?'…':'');
+      return `<div class="bd-item">
+        <span class="bd-dot ${ok?'ok':'ng'}"></span>
+        <span class="bd-q">${shortQ}</span>
+        <span class="bd-a">${ok?'✓ 정답':'✗ '+( q.ans+1)+'번'}</span>
+      </div>`;
+    }).join('')}`;
+
+  showScreen('result');
+  if (score === total) confetti();
+}
+
+/* ════ Utils ════ */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function confetti() {
+  const cols = ['#0c7a5e','#e09b18','#256e28','#1565c0','#ad1457'];
+  for (let i=0; i<60; i++) {
+    const el = document.createElement('div');
+    el.className = 'cf';
+    el.style.cssText = `left:${Math.random()*100}%;width:${6+Math.random()*7}px;height:${6+Math.random()*7}px;background:${cols[i%cols.length]};animation-duration:${1.2+Math.random()*1.8}s;animation-delay:${Math.random()*.5}s`;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+window.addEventListener('hashchange', init);
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
